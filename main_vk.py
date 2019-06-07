@@ -2,7 +2,6 @@ import os
 import random
 from functools import partial
 
-from dotenv import load_dotenv
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -83,11 +82,10 @@ def do_exit(vk, user_id):
 
 
 if __name__ == '__main__':
-    load_dotenv()
-    token_vk = os.getenv('TOKEN_VK')
+    token_vk = os.environ['TOKEN_VK']
     rediser = Redis(
-                host=os.getenv('REDIS_HOST'),
-                port=os.getenv('REDIS_PORT'),
+                host=os.environ['REDIS_HOST'],
+                port=os.environ['REDIS_PORT'],
                 db=0,
-                password=os.getenv('REDIS_PWD'))
+                password=os.environ['REDIS_PWD'])
     main(token_vk, rediser)
