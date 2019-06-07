@@ -1,7 +1,6 @@
 import os
 from functools import partial
 
-from dotenv import load_dotenv
 from telegram import Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
                           RegexHandler, ConversationHandler, Filters)
@@ -82,14 +81,13 @@ def do_exit(bot, update):
 
 
 if __name__ == '__main__':
-    load_dotenv()
-    token_tg = os.getenv('TOKEN_TG')
+    token_tg = os.environ['TOKEN_TG']
     logger = create_logger(
                 Bot(token=token_tg),
-                os.getenv('CHAT_ID_TG_ADMIN'))
+                os.environ['CHAT_ID_TG_ADMIN'])
     rediser = Redis(
-                host=os.getenv('REDIS_HOST'),
-                port=os.getenv('REDIS_PORT'),
+                host=os.environ['REDIS_HOST'],
+                port=os.environ['REDIS_PORT'],
                 db=0,
-                password=os.getenv('REDIS_PWD'))
+                password=os.environ['REDIS_PWD'])
     main(token_tg, logger, rediser)
