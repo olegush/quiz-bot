@@ -23,15 +23,23 @@ def main():
             bot.send_message(chat_id=chat_id_tg_admin, text=log_entry)
 
     dictLogConfig = {
-        "version":1,
-        "handlers":{
-            "handler":{"()":LoggerTelegramBot, "formatter":"formatter"}
+        'version': 1,
+        'handlers': {
+            'handler': {
+                '()': LoggerTelegramBot,
+                'formatter': 'formatter'
+                }
         },
-        "loggers":{
-            "tg_logger":{"handlers":["handler"], "level":"INFO"}
+        'loggers': {
+            'tg_logger': {
+                'handlers': ['handler'],
+                'level': 'INFO'
+            }
         },
-        "formatters":{
-            "formatter":{"format":"%(asctime)s - %(levelname)s - %(message)s"}
+        'formatters': {
+            'formatter': {
+                'format': '%(asctime)s - %(levelname)s - %(message)s'
+            }
         }
     }
 
