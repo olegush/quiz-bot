@@ -33,17 +33,15 @@ def get_question_and_answer():
         content = file.read()
         sections = content.split('\n\n')
     try:
-        answers = [section for section in sections if section.find('Ответ') == 0]
         questions = [section for section in sections if section.find('Вопрос') == 0]
+        answers = [section for section in sections if section.find('Ответ') == 0]
+        pairs = list(zip(questions, answers))
     except (TypeError, ValueError):
         pass
-    pairs = list(zip(questions, answers))
-    while True:
-        rand_num = random.randint(0, len(pairs) - 1)
-        pair = pairs[rand_num]
-        prog = re.compile("""
-                            \(pic.+\)  # Картинка в вопросе
-                          """, re.VERBOSE)
-        if prog.search(pair[0]):
-            continue
-        return pair
+    prog = re.compile("""
+                        \(pic.+\)  # Картинка в вопросе
+                      """, re.VERBOSE)
+    pairs = [(question, answer)
+            for (question, answer) in pairs
+            if prog.search(question) is None]
+    return random.choice(pairs)

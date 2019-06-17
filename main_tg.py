@@ -1,4 +1,5 @@
 import os
+import logging
 from functools import partial
 
 from telegram import Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -13,23 +14,56 @@ from quiz_tools import get_question_and_answer, format_answer, format_question
 QUESTION, ATTEMPT = range(2)
 
 
-def main(token, logger, rediser):
+def main():
+    token_tg = os.environ['TOKEN_TG']
+    logger = create_logger(
+                Bot(token=token_tg),
+                os.environ['CHAT_ID_TG_ADMIN'])
+    rediser = Redis(
+                host=os.environ['REDIS_HOST'],
+                port=os.environ['REDIS_PORT'],
+                db=0,
+                password=os.environ['REDIS_PWD'])
     updater = Updater(token)
     dp = updater.dispatcher
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            QUESTION: [RegexHandler('^Выход$', do_exit), MessageHandler(Filters.text, partial(handle_new_question, rediser))],
-            ATTEMPT: [RegexHandler('^Выход$', do_exit),
-                      RegexHandler('^(Новый вопрос|Другой вопрос)$', partial(handle_new_question, rediser)),
-                      RegexHandler('^Показать ответ$', partial(display_answer, rediser)),
-                      MessageHandler(Filters.text, partial(handle_attempt, rediser))],
+            QUESTION: [
+                RegexHandler('^Выход$', do_exit),
+                MessageHandler(Filters.text, partial(handle_new_question, rediser))],
+            ATTEMPT: [
+                RegexHandler('^Выход$', do_exit),
+                RegexHandler('^(Новый вопрос|Другой вопрос)$', partial(handle_new_question, rediser)),
+                RegexHandler('^Показать ответ$', partial(display_answer, rediser)),
+                MessageHandler(Filters.text, partial(handle_attempt, rediser))],
         },
         fallbacks=[CommandHandler('cancel', do_exit)]
     )
     dp.add_handler(conv_handler)
     updater.start_polling()
     updater.idle()
+
+
+def create_logger(bot, chat_id):
+    """ Sends formatted logs to Telegram Bot."""
+
+    class LoggerTelegramBot(logging.Handler):
+        def emit(self, record):
+            log_entry = self.format(record)
+            bot.send_message(
+                chat_id=chat_id,
+                text=log_entry,
+                parse_mode='HTML',
+                disable_web_page_preview=True)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
+    handler = LoggerTelegramBot()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 
 def do_reply(update, text, keyboard=None):
@@ -81,13 +115,4 @@ def do_exit(bot, update):
 
 
 if __name__ == '__main__':
-    token_tg = os.environ['TOKEN_TG']
-    logger = create_logger(
-                Bot(token=token_tg),
-                os.environ['CHAT_ID_TG_ADMIN'])
-    rediser = Redis(
-                host=os.environ['REDIS_HOST'],
-                port=os.environ['REDIS_PORT'],
-                db=0,
-                password=os.environ['REDIS_PWD'])
-    main(token_tg, logger, rediser)
+    main()

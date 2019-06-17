@@ -10,7 +10,13 @@ from redis import Redis
 from quiz_tools import get_question_and_answer, format_answer, format_question
 
 
-def main(token_vk, rediser):
+def main():
+    token_vk = os.environ['TOKEN_VK']
+    rediser = Redis(
+                host=os.environ['REDIS_HOST'],
+                port=os.environ['REDIS_PORT'],
+                db=0,
+                password=os.environ['REDIS_PWD'])
     vk_session = vk_api.VkApi(token=token_vk)
     vk = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
@@ -45,7 +51,7 @@ def do_reply(vk, user_id, text, buttons=None):
     vk.messages.send(
         user_id=user_id,
         message=text,
-        random_id=random.randint(1,1000),
+        random_id=random.randint(1, 1000),
         keyboard=reply_keyboard,
     )
 
@@ -82,10 +88,4 @@ def do_exit(vk, user_id):
 
 
 if __name__ == '__main__':
-    token_vk = os.environ['TOKEN_VK']
-    rediser = Redis(
-                host=os.environ['REDIS_HOST'],
-                port=os.environ['REDIS_PORT'],
-                db=0,
-                password=os.environ['REDIS_PWD'])
-    main(token_vk, rediser)
+    main()
