@@ -1,5 +1,6 @@
 import os
 import logging
+import logging.config
 from functools import partial
 
 from telegram import Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -15,17 +16,39 @@ QUESTION, ATTEMPT = range(2)
 
 
 def main():
+    class LoggerTelegramBot(logging.Handler):
+        def emit(self, record):
+            log_entry = self.format(record)
+            bot = Bot(token=token_tg)
+            bot.send_message(chat_id=chat_id_tg_admin, text=log_entry)
+
+    dictLogConfig = {
+        "version":1,
+        "handlers":{
+            "handler":{"()":LoggerTelegramBot, "formatter":"formatter"}
+        },
+        "loggers":{
+            "tg_logger":{"handlers":["handler"], "level":"INFO"}
+        },
+        "formatters":{
+            "formatter":{"format":"%(asctime)s - %(levelname)s - %(message)s"}
+        }
+    }
+
+    chat_id_tg_admin = os.environ['CHAT_ID_TG_ADMIN']
     token_tg = os.environ['TOKEN_TG']
-    logger = create_logger(
-                Bot(token=token_tg),
-                os.environ['CHAT_ID_TG_ADMIN'])
+    logging.config.dictConfig(dictLogConfig)
+    logger = logging.getLogger('tg_logger')
+    handler = LoggerTelegramBot()
+    logger.addHandler(handler)
     rediser = Redis(
                 host=os.environ['REDIS_HOST'],
                 port=os.environ['REDIS_PORT'],
                 db=0,
                 password=os.environ['REDIS_PWD'])
-    updater = Updater(token)
+    updater = Updater(token_tg)
     dp = updater.dispatcher
+    logger.info(dp)
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
@@ -43,27 +66,6 @@ def main():
     dp.add_handler(conv_handler)
     updater.start_polling()
     updater.idle()
-
-
-def create_logger(bot, chat_id):
-    """ Sends formatted logs to Telegram Bot."""
-
-    class LoggerTelegramBot(logging.Handler):
-        def emit(self, record):
-            log_entry = self.format(record)
-            bot.send_message(
-                chat_id=chat_id,
-                text=log_entry,
-                parse_mode='HTML',
-                disable_web_page_preview=True)
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(levelname)s - %(message)s')
-    handler = LoggerTelegramBot()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
 
 
 def do_reply(update, text, keyboard=None):
