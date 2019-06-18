@@ -2,7 +2,7 @@ import os
 import logging
 import logging.config
 from functools import partial
-
+from dotenv import load_dotenv
 from telegram import Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
                           RegexHandler, ConversationHandler, Filters)
@@ -19,7 +19,6 @@ def main():
     class LoggerTelegramBot(logging.Handler):
         def emit(self, record):
             log_entry = self.format(record)
-            bot = Bot(token=token_tg)
             bot.send_message(chat_id=chat_id_tg_admin, text=log_entry)
 
     dictLogConfig = {
@@ -43,17 +42,18 @@ def main():
         }
     }
 
-    chat_id_tg_admin = os.environ['CHAT_ID_TG_ADMIN']
-    token_tg = os.environ['TOKEN_TG']
+    load_dotenv()
+    chat_id_tg_admin = os.getenv('CHAT_ID_TG_ADMIN')
+    bot = Bot(token=os.getenv('TOKEN_TG'))
     logging.config.dictConfig(dictLogConfig)
     logger = logging.getLogger('tg_logger')
     handler = LoggerTelegramBot()
     logger.addHandler(handler)
     rediser = Redis(
-                host=os.environ['REDIS_HOST'],
-                port=os.environ['REDIS_PORT'],
+                host=os.getenv('REDIS_HOST'),
+                port=os.getenv('REDIS_PORT'),
                 db=0,
-                password=os.environ['REDIS_PWD'])
+                password=os.getenv('REDIS_PWD'))
     updater = Updater(token_tg)
     dp = updater.dispatcher
     logger.info(dp)
