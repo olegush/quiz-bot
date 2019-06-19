@@ -32,16 +32,17 @@ def get_question_and_answer():
     with open(file_path, encoding='KOI8-R') as file:
         content = file.read()
         sections = content.split('\n\n')
+    questions = [section for section in sections if section.find('Вопрос') == 0]
+    answers = [section for section in sections if section.find('Ответ') == 0]
+    pairs = list(zip(questions, answers))
+    # Check if pair list is empty
     try:
-        questions = [section for section in sections if section.find('Вопрос') == 0]
-        answers = [section for section in sections if section.find('Ответ') == 0]
-        pairs = list(zip(questions, answers))
-    except (TypeError, ValueError):
+        prog = re.compile("""
+                            \(pic.+\)  # Картинка в вопросе
+                          """, re.VERBOSE)
+        pairs = [(question, answer)
+                for (question, answer) in pairs
+                if prog.search(question) is None]
+        return random.choice(pairs)
+    except IndexError:
         pass
-    prog = re.compile("""
-                        \(pic.+\)  # Картинка в вопросе
-                      """, re.VERBOSE)
-    pairs = [(question, answer)
-            for (question, answer) in pairs
-            if prog.search(question) is None]
-    return random.choice(pairs)
