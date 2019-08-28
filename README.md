@@ -1,6 +1,7 @@
 # Quiz Bot
 
-This quiz bot using txt-files with questions and anwsers (see **quiz-questions** directory). Actually, there are two bots  - Telegram Bot and VKontakte Bot. For storing current answers they use [Redis](https://redislabs.com/) database.
+This quiz bot using txt-files with questions and anwsers (see **quiz-questions** directory). Actually, there are two bots  - Telegram Bot and VKontakte Bot. For storing current answers they use [Redis](https://redislabs.com/) database. You can check out them right now: TG: @quiz_chat_bot, VK: club183180897
+
 
 ## How to install
 
